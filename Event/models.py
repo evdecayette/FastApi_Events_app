@@ -1,7 +1,14 @@
 from datetime import datetime, date
-from sqlmodel import SQLModel, Field
-
+from sqlmodel import SQLModel, Field, Relationship
+from typing import  List, Optional
 # Define the User table
+
+
+
+class Login(SQLModel):
+    email:str
+    password:str
+
 class UserBase(SQLModel):
     userId: int
     admin: bool
@@ -21,6 +28,8 @@ class Users(UserBase, table=True):
     updated_at : datetime =Field(sa_column="start_date")
     username: str = Field(sa_column="username")
     password : str = Field(sa_column="password")
+    events: List["Events"] = Relationship(back_populates="creator")
+
 
 # Define the Event table
 class EventBase(SQLModel):
@@ -35,6 +44,7 @@ class EventBase(SQLModel):
     updated_at: datetime
     userId: int
 
+
 class Events(EventBase, table=True):
     eventId : int = Field(default=None,primary_key=True)
     created_at:date = Field(sa_column="create_at")
@@ -46,6 +56,24 @@ class Events(EventBase, table=True):
     title: str = Field(sa_column="title")
     updated_at : datetime = Field(sa_column="update_at")
     userId: int = Field(sa_column="userId", foreign_key="users.userId")
+    creator: Optional[Users] = Relationship(back_populates="events")
+    
+class ShowUser(SQLModel):
+    email: str
+    profile: str
+    username: str
+    events : List[Events] = []
+
+class ShowEvent(SQLModel):
+    created_at: date
+    description: str
+    end_date: date
+    location: str
+    image: str
+    start_date: date
+    title: str
+    updated_at: datetime
+    creator: ShowUser
 
 # Define the Tag table
 class TagBase(SQLModel):
@@ -76,3 +104,12 @@ class Likes(LikeBase, table=True):
     userId: int = Field(sa_column="userId", foreign_key="users.userId")
     eventId: int = Field(sa_column="eventId", foreign_key="events.eventId")
     vote_type : str = Field(sa_column="vote_type")
+
+
+class Token(SQLModel):
+    access_token: str
+    token_type: str
+
+
+class TokenData(SQLModel):
+    email: str | None = None
